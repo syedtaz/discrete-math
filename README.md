@@ -1,2 +1,3 @@
-# discrete-math
+# Discrete Mathematics
+
 Experiments in formal methods.
