@@ -46,3 +46,75 @@ Definition instrDenote (i : instr) (s : stack) : option stack :=
         end
     end.
 
+(* Iterates application of instrDenote through a whole program. *)
+Fixpoint progDenote (p : prog) (s : stack) : option stack :=
+    match p with
+        | nil => Some s
+        | i :: p' => match instrDenote i s with
+            | None => None
+            | Some s' => progDenote p' s'
+            end
+        end.
+
+(* Compiler itself. *)
+Fixpoint compile (e : exp) : prog :=
+    match e with
+        | Const n => iConst n :: nil
+        | Binop b e1 e2 => compile e2 ++ compile e1 ++ iBinop b :: nil
+    end.
+
+(* How can we be sure the compiler operates correctly for all input
+programs? *)
+Theorem compile_correct : forall e, progDenote (compile e) nil
+    = Some (expDenote e :: nil).
+
+Abort.
+
+Lemma compile_correct' : forall e p s,
+    progDenote (compile e ++ p) s = progDenote p (expDenote e :: s).
+
+induction e.
+
+intros.
+
+unfold compile.
+
+unfold expDenote.
+
+unfold progDenote at 1.
+
+simpl.
+
+fold progDenote.
+
+reflexivity.
+
+intros.
+
+unfold compile.
+
+fold compile.
+
+unfold expDenote.
+
+fold expDenote.
+
+Check app_assoc_reverse.
+
+rewrite app_assoc_reverse.
+
+rewrite IHe2.
+
+rewrite app_assoc_reverse.
+
+rewrite IHe1.
+
+unfold progDenote at 1.
+
+simpl.
+
+fold progDenote.
+
+reflexivity.
+
+Qed.
